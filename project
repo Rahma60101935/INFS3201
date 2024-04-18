@@ -1,0 +1,244 @@
+const express = require('express')
+const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
+const business = require('./business.js')
+const randomstring = require("randomstring");
+let app = express()
+const handlebars = require('express-handlebars')
+app.set('views', __dirname+"/templates")
+app.set('view engine', 'handlebars')
+
+app.engine('handlebars', handlebars.engine())
+app.use(bodyParser.urlencoded())
+app.use('/static', express.static(__dirname+"/static"))
+app.use(cookieParser())
+
+const fileUpload =require('express-fileupload')
+app.use(fileUpload())
+
+
+
+app.get('/', (req, res) => {
+    res.render('login', {layout: undefined, message: req.query.message})
+})
+
+app.post('/', async (req,res) => {
+    let username = req.body.username
+    let password = req.body.password
+    if (username == "" || password == "") {
+        res.redirect("/?message=Invalid Username/Password")
+        return
+    }
+    let userType = await business.checkLogin(username, password)
+    if (!userType) {
+        res.redirect("/?message=Invalid Username/Password")
+        return
+    }
+
+
+    let session = await business.startSession({
+        UserName: username,
+        UserType: userType
+    })
+    res.cookie('lab7session', session.uuid, {expires: session.expiry})
+
+    if (userType == 'admin') {
+        res.redirect('/admin')
+    }
+    else if (userType == 'standard') {
+        res.redirect('/standard')
+    }
+})
+
+
+app.get('/standard', async (req, res) => {
+   
+    
+    let sessionKey = req.cookies.lab7session;
+    let stations= await business.allStations()
+    if (!sessionKey) {
+        res.redirect("/?message=Not logged in")
+        return
+    }
+    let sessionData = await business.getSessionData(sessionKey)
+    if (!sessionData) {
+        res.redirect("/?message=Not logged in")
+        return
+    }
+
+    if (sessionData && sessionData.Data && sessionData.Data.UserType && sessionData.Data.UserType != 'standard') {
+        res.redirect("/?message=Invalid User Type")
+        return
+    }
+
+     imagesM= await business.filesM()
+    res.render('standard_landing', {layout: undefined, username: sessionData.Data.UserName , station:stations,images:imagesM})
+               
+            
+
+})
+
+app.get('/logout', async (req, res) => {
+    await business.deleteSession(req.cookies.lab7session)
+    res.cookie('lab7session', '', {expires: new Date(Date.now())})
+    res.redirect('/')
+})
+
+app.get('/admin', async (req, res) => {
+    food= await business.getTotalFoodProvided()
+    water= await business.getTotalWaterProvided()
+    cats= await business.getTotalCatsCount()
+    waterCounts = await business.getWaterProvidedCounts()
+    foodCounts = await business.getFoodProvidedCounts()
+
+    let sessionKey = req.cookies.lab7session;
+    if (!sessionKey) {
+        res.redirect("/?message=Not logged in")
+        return
+    }
+    let sessionData = await business.getSessionData(sessionKey)
+    if (!sessionData) {
+        res.redirect("/?message=Not logged in")
+        return
+    }
+    if (sessionData && sessionData.Data && sessionData.Data.UserType && sessionData.Data.UserType != 'admin') {
+        res.redirect("/?message=Invalid User Type")
+        return
+    }
+    res.render('admin_landing', {layout:undefined, username: sessionData.Data.UserName,foodTotal:food,waterTotal:water,catsTotal:cats,waterCounts:waterCounts,foodCounts:foodCounts})
+})
+app.post('/standard',async(req,res)=>{
+    res.redirect('/stationDetails')
+   
+})
+app.get('/stationDetails',async(req,res)=>{
+    res.render('station_detials',{layout:undefined})
+
+})
+
+app.post('/stationDetails',async(req,res)=>{
+    let location=req.body.location;
+    let lastVisited =req.body.lastVisited;
+    let foodStatus =req.body.foodStatus;
+    let waterStatus =req.body.waterStatus;
+    let foodProvided= req.body.foodProvided;
+    let waterProvided =req.body.waterProvided;
+    let catsCount= req.body.catsCount;
+    let reportIssue= req.body.reportIssue;
+    console.log(catsCount)
+    await business.updateStation(location,lastVisited,foodStatus,waterStatus,foodProvided,waterProvided,catsCount,reportIssue)
+   res.redirect('/standard')
+    
+})
+
+app.get('/souqwaqif',async(req,res)=>{
+      let dataS = await business.findStation('Souq Waqif')
+      res.render('souqWaqif',{layout:undefined, station:dataS})
+
+    })
+
+app.get('/kataraculturalvillage',async(req,res)=>{
+    let dataK = await business.findStation('Katara Cultural Village')
+
+        res.render('kataraCulturalVillage',{layout:undefined,station:dataK })
+    
+        })
+
+app.get('/dohacorniche',async(req,res)=>{
+    let dataC = await business.findStation('Doha Corniche')
+            res.render('dohaCorniche',{layout:undefined,station:dataC })
+        
+            })
+app.get('/aspirepark',async(req,res)=>{
+    let dataA= await business.findStation('Aspire Park')
+                res.render('aspirePark',{layout:undefined,station:dataA })
+            
+                })
+
+const sanitizeHtml = require('sanitize-html');
+
+app.post('/memberposts', async (req, res) => {
+    let theFile = req.files.sumbission;
+    let fileName = theFile.name;
+    let posts = sanitizeHtml(req.body.newPost, {
+        allowedTags: [],   // Allow no HTML tags
+        allowedAttributes: {}  // Allow no HTML attributes
+    });
+    await theFile.mv(`${__dirname}/static/${fileName}`);
+    await business.insertFiles(fileName, posts);
+    imagesM = await business.filesM();
+    res.render('posts', { layout: undefined, image: fileName, images: imagesM });
+    console.log(posts);
+    console.log('file is uploaded');
+});
+             
+app.get('/memberposts',async(req,res)=>{
+    imagesM= await business.filesM()
+    
+     res.render('posts',{layout:undefined,images: imagesM})
+    })
+
+
+
+
+app.get('/registration', async (req, res) => {
+    let dataC = await business.findStation('Doha Corniche')
+    imagesM= await business.filesM()
+        res.render("registerUser", { layout: undefined, station:dataC,images:imagesM});
+      });
+      
+app.post('/registration', async (req, res) => {
+        // save registration details and redirect to / with a message
+        let username = req.body.username;
+        let password = req.body.password;
+        let email=req.body.email;
+      
+    
+        //encrypy the password using sha256 before storing it into database
+        let encryptPassword=  await business.encryptPassword(password)
+       
+        await business.createAccount(username,email,encryptPassword);
+        //    await business.setFlash(key, "New user has been registered successfully. ");
+        res.redirect('/');
+      });
+     
+
+      app.get('/forgetpassword', async (req, res) => {
+        res.render("forgotpassword", { layout: undefined });
+    });
+    
+    app.post('/forgetpassword', async (req, res) => {
+        let email = req.body.email;
+        // Generate a random token for password reset link
+        let resetToken = randomstring.generate({ length: 20, charset: 'alphanumeric' });
+        // Store the reset token in a database or cache, associated with the user's email
+        
+        // Construct the reset link with the token
+        let resetLink = `http://yourdomain.com/resetpassword?token=${resetToken}`;
+        console.log(email)
+        console.log('Reset Link:', resetLink);
+        
+        // Here you would typically send an email to the user containing the reset link
+        
+        // Render the forgotpassword template with a message indicating that the reset link has been sent
+      res.redirect('/resetpassword')
+       
+    });
+    
+app.get("/resetpassword", async(req,res)=>{
+   res.render('passwordreset', { layout: undefined })
+})
+    
+ app.post("/resetpassword", async (req, res) => {
+        let newPassword = req.body.password
+        let resetToken = req.body.token; 
+
+        await business.resetPassword(newPassword)
+
+        
+        // Once the password is successfully reset, redirect to a success page
+        res.render('passwordreset', { layout: undefined });
+    });
+    
+   
+app.listen(8000, () => { console.log("Running")})
