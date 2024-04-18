@@ -1,0 +1,177 @@
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stray Cat Feeding System</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0e5e5; /* Light pink */
+}
+
+nav {
+    background-color: #ff69b4; /* Pink */
+    padding: 10px;
+}
+
+nav ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+main {
+    padding: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+th {
+    background-color: #add8e6; /* Light blue */
+    color: #ffffff;
+}
+
+tr:nth-child(even) {
+    background-color: #cce0ff; /* Light blue */
+}
+
+#newPost {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ff8080; /* Light pink */
+    border-radius: 5px;
+}
+
+button[type="submit"] {
+    background-color: #3a3a7d; /* Dark blue */
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+    background-color: #19194d; /* Darker blue */
+}
+
+.other-images {
+    margin-top: 20px;
+}
+
+.other-images .image-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.other-images .image-container img {
+    width: 300px;
+    height: auto;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.other-images .image-container .image-text {
+    font-size: 16px;
+    color: #555; /* dark gray */
+    margin-bottom: 5px;
+}
+
+    </style>
+</head>
+<body>
+<nav>
+    <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="/souqwaqif">Souq Waqif</a></li>
+        <li><a href="/dohacorniche">Doha Corniche</a></li>
+        <li><a href="/kataraculturalvillage">Katara Cultural Village</a></li>
+        <li><a href="/aspirepark">Aspire Park</a></li>
+        <li><a href="/memberposts">Member Posts</a></li>
+
+    </ul>
+</nav>
+
+<main>
+    <section id="visitDetails">
+        <h2>Visit Details</h2>
+        <form id="visitDetailsForm" method="post" action="/standard">
+            <table>
+                <tr>
+                    <th>Location</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Description</th>
+                    <th>Last Visited</th>
+                    <th>Water Status</th>
+                    <th>Food Status</th>
+                    <th>Cat Count</th>
+                    <th>Record Visit Details</th> <!-- New column for the action button -->
+                </tr>
+                
+                {{#each station}}
+                <tr>
+                    
+                    
+                    <td>{{this.location}}</td>
+                    <td>{{this.latitude}}</td>
+                    <td>{{this.longitude}}</td>
+                    <td>{{this.description}}</td>
+                    <td>{{this.last_visited}}</td>
+                    <td>{{this.water_status}}</td>
+                    <td>{{this.food_status}}</td>
+                    <td>{{this.cats_count}}</td>
+                    
+                   <td><button type="submit" value="Record Visit Details">Record</button></td> 
+                    <!-- Button added here -->
+                </tr>
+                
+                {{/each}}
+            </table>
+            <br>
+            
+        </form>
+    </section>
+   
+
+   
+
+
+
+   <h2>Post made by Members</h2>
+    <div class="other-images">
+        {{#each images}}
+            <div class="image-container">
+                <p class="image-text">{{this.posts}}</p>
+                <img src="/static/{{this.fileName}}" alt="Image">
+            </div>
+        {{/each}}
+    </div>
+</main>
+
+</body>
+</html>

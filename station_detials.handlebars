@@ -1,0 +1,102 @@
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Feeding Station Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0e5e5; /* Light pink */
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            color: #7b5e57; /* Dark pink */
+        }
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fce4ec; /* Light pink */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #7b5e57; /* Dark pink */
+        }
+        select, input[type="datetime-local"], input[type="number"], textarea, button, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ffb6c1; /* Light pink */
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            background-color: #87cefa; /* Light blue */
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #6495ed; /* Medium blue */
+        }
+    </style>
+</head>
+<body>
+    <h1>Update Feeding Station Details</h1>
+    <form id="modifyForm"  method="post" >
+        <label for="location">Location:</label><br>
+        <select id="location" name="location">
+            <option value="Katara Cultural Village">Katara Cultural Village</option>
+            <option value="Doha Corniche">Doha Corniche</option>
+            <option value="Souq Waqif">Souq Waqif</option>
+            <option value="Aspire Park">Aspire Park</option>
+        </select><br>
+        
+        <label for="lastVisited">Last Visited:</label><br>
+        <input type="datetime-local" id="lastVisited" name="lastVisited" required><br>
+        
+        <label for="foodStatus">Food Status:</label><br>
+        <select id="foodStatus" name="foodStatus" required>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select><br>
+        
+        <label for="waterStatus">Water Status:</label><br>
+        <select id="waterStatus" name="waterStatus" required>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select><br>
+        
+        <label for="foodProvided">Food Provided:</label><br>
+        <input type="number" id="foodProvided" name="foodProvided" required><br>
+        
+        <label for="waterProvided">Water Provided:</label><br>
+        <input type="number" id="waterProvided" name="waterProvided" required><br>
+        
+        <label for="catsCount">Cat Count:</label><br>
+        <input type="number" id="catsCount" name="catsCount" required><br>
+
+         <label for="complaintDescription">Report an issue:</label><br>
+        <textarea id="complaintDescription" name="reportIssue" rows="4" required></textarea><br>
+        
+
+       
+        <button type="submit">Submit</button>
+        </form>
+    
+</body>
+</html>
