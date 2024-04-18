@@ -1,0 +1,213 @@
+
+const mongodb = require('mongodb')
+
+let client = undefined
+let db = undefined
+let users = undefined
+let session = undefined
+
+async function connectDatabase() {
+    if (!client) {
+        client = new mongodb.MongoClient('mongodb+srv://60101935R:60101935R@cluster0.vt2kjwp.mongodb.net/')
+        await client.connect()
+        db = client.db('Lab7')
+        users = db.collection('UserAccounts')
+        session = db.collection('SessionData')
+      
+
+    }
+}
+async function resetPassword(newPassword){
+    connectDatabase()
+    db = client.db('Lab7')
+    users = db.collection('UserAccounts')
+     await users.updateOne(
+        { email: email },
+        { $set: { password: newPassword } }
+    );
+
+}
+async function getUserDetails(username) {
+    await connectDatabase()
+    let result = await users.find({username: username})
+    let resultData = await result.toArray()
+    return resultData[0]
+}
+
+
+async function saveSession(uuid, expiry, data) {
+    await connectDatabase()
+    await session.insertOne({
+        SessionKey: uuid,
+        Expiry: expiry,
+        Data: data
+    })
+}
+
+async function getSessionData(key) {
+    await connectDatabase()
+    let result = await session.find({SessionKey: key})
+    let resultData = await result.toArray()
+    return resultData[0]
+}
+
+async function deleteSession(key) {
+    await session.deleteOne({SessionKey: key})
+}
+
+async function allStations(){
+    connectDatabase()
+    db = client.db('webproject')
+    stations = db.collection('stations')
+    let result= await stations.find()
+    let resultData = await result.toArray()
+    return resultData
+}
+async function findStation(location){
+    connectDatabase()
+    db = client.db('webproject')
+    stations = db.collection('stations')
+    let result= await stations.find({location:location})
+    let resultData = await result.toArray()
+    return resultData
+
+}
+async function updateStation(location,lastVisited,foodStatus,waterStatus,foodProvided,waterProvided,catsCount,reportIssue){
+    connectDatabase()
+    db = client.db('webproject')
+    stations = db.collection('stations')
+    
+    stations.updateOne(
+        { location: location },
+        {
+            $set: {
+                last_visited: lastVisited,
+                food_status: foodStatus,
+                water_status: waterStatus,
+                food_provided: foodProvided,
+                water_provided: waterProvided,
+                cats_count: catsCount,
+                reportIssue: reportIssue
+            }
+        }
+    )
+    
+
+}
+async function insertFiles(fileName,posts){
+    connectDatabase()
+    db = client.db('webproject')
+    images = db.collection('images')
+    await images.insertOne({
+        fileName:fileName,
+        posts:posts,
+
+    })
+}
+
+async function filesM() {
+    connectDatabase()
+    db = client.db('webproject');
+    images = db.collection('images');
+    let result = await images.find();
+    let resultData = await result.toArray();
+    return resultData
+}
+
+async function getTotalFoodProvided() {
+    connectDatabase();
+    const db = client.db('webproject');
+    const stations = db.collection('stations');
+
+    try {
+        const totalFoodProvided = await stations.aggregate([
+            { $group: { _id: null, total: { $sum: { $toInt: "$food_provided" } } } }
+        ]).toArray();
+
+        return totalFoodProvided[0].total || 0;
+    } catch (error) {
+        console.error("Error calculating total food provided:", error);
+        return 0;
+    }
+}
+
+async function getTotalWaterProvided() {
+    connectDatabase();
+    const db = client.db('webproject');
+    const stations = db.collection('stations');
+
+    try {
+        const totalWaterProvided = await stations.aggregate([
+            { $group: { _id: null, total: { $sum: { $toInt: "$water_provided" } } } }
+        ]).toArray();
+
+        return totalWaterProvided[0].total || 0;
+    } catch (error) {
+        console.error("Error calculating total water provided:", error);
+        return 0;
+    }
+}
+async function getTotalCatsCount() {
+    connectDatabase();
+    const db = client.db('webproject');
+    const stations = db.collection('stations');
+
+    try {
+        const totalCatsCount = await stations.aggregate([
+            { $group: { _id: null, total: { $sum: { $toInt: "$cats_count" } } } }
+        ]).toArray();
+
+        return totalCatsCount[0].total || 0;
+    } catch (error) {
+        console.error("Error calculating total cats count:", error);
+        return 0;
+    }
+}
+async function getWaterProvidedCounts() {
+    connectDatabase();
+    const db = client.db('webproject');
+    const stations = db.collection('stations');
+
+    try {
+        const cursor = await stations.find({}, { projection: { _id: 0, water_provided: 1 } });
+        let waterCounts = '';
+        await cursor.forEach(station => {
+            waterCounts += `${parseInt(station.water_provided) || 0}, `;
+        });
+        return waterCounts.trim().slice(0, -1); // Remove the trailing comma
+    } catch (error) {
+        console.error("Error getting water provided counts:", error);
+        return '';
+    }
+}
+
+async function getFoodProvidedCounts() {
+    connectDatabase();
+    const db = client.db('webproject');
+    const stations = db.collection('stations');
+
+    try {
+        const cursor = await stations.find({}, { projection: { _id: 0, food_provided: 1 } });
+        let foodCounts = '';
+        await cursor.forEach(station => {
+            foodCounts += `${parseInt(station.food_provided) || 0}, `;
+        });
+        return foodCounts.trim().slice(0, -1); // Remove the trailing comma
+    } catch (error) {
+        console.error("Error getting food provided counts:", error);
+        return '';
+    }
+}
+
+async function createAccount(reg){
+
+    connectDatabase()
+    db = client.db('Lab7')
+    users = db.collection('UserAccounts')
+    await users.insertOne(reg)
+    
+}
+ 
+module.exports = {
+    getUserDetails, saveSession, getSessionData, deleteSession,allStations,findStation,updateStation,filesM,insertFiles,getTotalFoodProvided,getTotalWaterProvided,getTotalCatsCount,getWaterProvidedCounts,getFoodProvidedCounts,createAccount,resetPassword
+}
