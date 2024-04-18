@@ -1,0 +1,110 @@
+const persistence = require("./persistence.js")
+const crypto = require("crypto")
+
+
+async function checkLogin(username, password) {
+    let details = await persistence.getUserDetails(username)
+    let hash = crypto.createHash('sha256')
+    hash.update(password)
+    let result = hash.digest('hex') 
+    if (details.username === username && details.password === result) {
+        return details.AccountType
+    }
+    return undefined
+
+}
+
+async function encryptPassword(password){
+    let hash = crypto.createHash('sha256')
+    hash.update(password) 
+    let encryptPassword = hash.digest('hex')
+    return encryptPassword
+}
+// Save the data (might be an object) into the persistence.  The expiry time will be 5 minutes from
+// the current time.  The session key will be returned so that the presentation layer can
+// send it as a cookie.
+async function startSession(data) {
+    let uuid = crypto.randomUUID()
+    let expiry = new Date(Date.now() + 45*1000*120)
+    await persistence.saveSession(uuid, expiry, data)
+    return {
+        uuid: uuid,
+        expiry: expiry
+    }
+}
+
+async function getSessionData(key) {
+    return await persistence.getSessionData(key)
+}
+
+async function deleteSession(key) {
+    await persistence.deleteSession(key)
+}
+
+async function allStations(){
+    let data = await persistence.allStations()
+    return data 
+}
+
+async function findStation(location){
+    let data = await persistence.findStation(location)
+    return data 
+}
+async function updateStation(location,lastVisited,foodStatus,waterStatus,foodProvided,waterProvided,catsCount,reportIssue){
+    await persistence.updateStation(location,lastVisited,foodStatus,waterStatus,foodProvided,waterProvided,catsCount,reportIssue)
+}
+
+async function insertFiles(fileName,posts){
+   
+  await persistence.insertFiles(fileName,posts)
+}
+async function filesM(){
+  data = await persistence.filesM()
+  return data 
+ }
+async function getTotalFoodProvided(){
+    food= await persistence.getTotalFoodProvided()
+    return food
+}
+async function getTotalWaterProvided(){
+    water= await persistence.getTotalWaterProvided()
+    return water
+}
+async function getTotalCatsCount(){
+    cats= await persistence.getTotalCatsCount()
+    return cats
+}
+
+async function getWaterProvidedCounts() {
+  let waterCounts = await persistence.getWaterProvidedCounts()
+   return waterCounts
+}
+async function getFoodProvidedCounts() {
+  let foodCounts = await persistence.getFoodProvidedCounts()
+  return foodCounts
+}
+
+async function createAccount(username,email,password){
+    standard='standard'
+      
+    let reg={
+      
+        username : username,
+        password: password,
+        email:email, 
+       
+        AccountType: standard,
+    }
+  
+ 
+    return await persistence.createAccount(reg)
+   
+   }
+
+async function resetPassword(newPassword){
+    await persistence.resetPassword(newPassword)
+   }
+
+module.exports = {
+    checkLogin, startSession, getSessionData, deleteSession,allStations,findStation,updateStation,filesM,insertFiles,getTotalFoodProvided,getTotalWaterProvided,getTotalCatsCount,getWaterProvidedCounts,getFoodProvidedCounts,encryptPassword,createAccount,resetPassword
+}
